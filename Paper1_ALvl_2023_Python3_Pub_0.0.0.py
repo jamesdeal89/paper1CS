@@ -16,8 +16,16 @@ class Dastan:
         self._NoOfColumns = C
         self._MoveOptionOfferPosition = 0
         self.__CreateMoveOptionOffer()
-        self.__CreateBoard()
-        self.__CreatePieces(NoOfPieces)
+        while True:
+            location1 = input("Player 1 enter mirza/kotla location:")
+            if location1[0] == "0" and int(location1[1]) > 0 and int(location1[1]) < self._NoOfColumns:
+                break
+        while True:
+            location2 = input("Player 2 enter mirza/kotla location:")
+            if location2[0] == "6" and int(location2[1]) > 0 and int(location2[1]) < self._NoOfColumns:
+                break
+        self.__CreateBoard(location1,location2)
+        self.__CreatePieces(NoOfPieces,location1,location2)
         self._CurrentPlayer = self._Players[0]
 
 # wikibooks prediction 4
@@ -269,28 +277,28 @@ class Dastan:
         else:
             print(self._Players[1].GetName() + " is the winner!")
 
-    def __CreateBoard(self):
+    def __CreateBoard(self, loc1, loc2):
         for Row in range(1, self._NoOfRows + 1):
             for Column in range(1, self._NoOfColumns + 1):
-                if Row == 1 and Column == self._NoOfColumns // 2:
+                if Row == 1 and Column == int(loc1[1]):
                     S = Kotla(self._Players[0], "K")
-                elif Row == self._NoOfRows and Column == self._NoOfColumns // 2 + 1:
+                elif Row == self._NoOfRows and Column == int(loc2[1]):
                     S = Kotla(self._Players[1], "k")
                 else:
                     S = Square()
                 self._Board.append(S)
 
-    def __CreatePieces(self, NoOfPieces):
+    def __CreatePieces(self, NoOfPieces,loc1,loc2):
         for Count in range(1, NoOfPieces + 1):
             CurrentPiece = Piece("piece", self._Players[0], 1, "!")
             self._Board[self.__GetIndexOfSquare(2 * 10 + Count + 1)].SetPiece(CurrentPiece)
         CurrentPiece = Piece("mirza", self._Players[0], 5, "1")
-        self._Board[self.__GetIndexOfSquare(10 + self._NoOfColumns // 2)].SetPiece(CurrentPiece)
+        self._Board[self.__GetIndexOfSquare(int(loc1))].SetPiece(CurrentPiece)
         for Count in range(1, NoOfPieces + 1):
             CurrentPiece = Piece("piece", self._Players[1], 1, '"')
             self._Board[self.__GetIndexOfSquare((self._NoOfRows - 1) * 10 + Count + 1)].SetPiece(CurrentPiece)
         CurrentPiece = Piece("mirza", self._Players[1], 5, "2")
-        self._Board[self.__GetIndexOfSquare(self._NoOfRows * 10 + (self._NoOfColumns // 2 + 1))].SetPiece(CurrentPiece)
+        self._Board[self.__GetIndexOfSquare(int(loc2))].SetPiece(CurrentPiece)
 
     def __CreateMoveOptionOffer(self):
         self._MoveOptionOffer.append("jazair")
@@ -415,6 +423,7 @@ class Dastan:
         self._Players[0].AddToMoveOptionQueue(self.__CreateMoveOption("cuirassier", 1))
         self._Players[0].AddToMoveOptionQueue(self.__CreateMoveOption("faujdar", 1))
         self._Players[0].AddToMoveOptionQueue(self.__CreateMoveOption("jazair", 1))
+        self._Players[0].shuffleMoveOptionQ()
         self._Players[1].AddToMoveOptionQueue(self.__CreateMoveOption("tibblecross", -1))
         self._Players[1].AddToMoveOptionQueue(self.__CreateMoveOption("rook", -1))
         self._Players[1].AddToMoveOptionQueue(self.__CreateMoveOption("ryott", -1))
@@ -422,6 +431,7 @@ class Dastan:
         self._Players[1].AddToMoveOptionQueue(self.__CreateMoveOption("jazair", -1))
         self._Players[1].AddToMoveOptionQueue(self.__CreateMoveOption("faujdar", -1))
         self._Players[1].AddToMoveOptionQueue(self.__CreateMoveOption("cuirassier", -1))
+        self._Players[1].shuffleMoveOptionQ()
 
 class Piece:
     def __init__(self, T, B, P, S):
@@ -551,6 +561,9 @@ class MoveOptionQueue:
 
     def GetMoveOptionInPosition(self, Pos):
         return self.__Queue[Pos]
+    
+    def shuffle(self):
+        random.shuffle(self.__Queue)
 
 class Player:
     def __init__(self, N, D):
@@ -559,6 +572,9 @@ class Player:
         self.__Direction = D
         self._Queue = MoveOptionQueue()
         self._SpaceJumpUsed = False
+
+    def shuffleMoveOptionQ(self):
+        self._Queue.shuffle()
 
     # wikibooks prediction 4 - spacejump 
     def GetSpaceJumpUsed(self):
