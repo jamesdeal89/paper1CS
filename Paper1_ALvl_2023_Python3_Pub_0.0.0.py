@@ -10,8 +10,7 @@ class Dastan:
         self._Board = []
         self._Players = []
         self._MoveOptionOffer = []
-        self._Players.append(Player("Player One", 1))
-        self._Players.append(Player("Player Two", -1))
+        self.getUsernames()
         self.__CreateMoveOptions()
         self._NoOfRows = R
         self._NoOfColumns = C
@@ -20,6 +19,16 @@ class Dastan:
         self.__CreateBoard()
         self.__CreatePieces(NoOfPieces)
         self._CurrentPlayer = self._Players[0]
+
+# wikibooks prediction 4
+    def getUsernames(self):
+        name1 = input("Player1 please enter name:")
+        while True:
+            name2 = input("Player2 please enter name:")
+            if name1 != name2:
+                break
+        self._Players.append(Player(name1, 1))
+        self._Players.append(Player(name2, -1))
 
     def __DisplayBoard(self):
         print("\n" + "   ", end="")
@@ -159,11 +168,13 @@ class Dastan:
                     self.__UpdateBoard(StartSquareReference, FinishSquareReference)
                     self.__UpdatePlayerScore(PointsForPieceCapture)
                     print("New score: " + str(self._CurrentPlayer.GetScore()) + "\n")
+            
             if Choice != 10:
                 while not SquareIsValid:
                     StartSquareReference = self.__GetSquareReference("containing the piece to move")
                     SquareIsValid = self.__CheckSquareIsValid(StartSquareReference, True)
                 SquareIsValid = False
+                self.__showMoves(Choice, StartSquareReference)
                 # wikibooks prediction 2
                 if self._CurrentPlayer._Queue.GetMoveOptionInPosition(Choice-1).GetName() == "rook":
                     FinishRow = int(str(StartSquareReference)[0])
@@ -214,6 +225,38 @@ class Dastan:
             GameOver = self.__CheckIfGameOver()
         self.__DisplayState()
         self.__DisplayFinalResult()
+
+    # wikibooks prediction - show possible moves of a piece selected
+    def __showMoves(self, Choice, StartSquareReference):
+        # showing the possible moves on a board after the user selects the starting square could be done by adding symbols to the board
+        # make copy of code to display the board.
+        # however check if the square being currently displayed is valid using using CheckIfThereIsAMoveToSquare() boolean return value
+        moveoption = self._CurrentPlayer._Queue.GetMoveOptionInPosition(Choice-1)
+        print("\n" + "   ", end="")
+        for Column in range(1, self._NoOfColumns + 1):
+            print(str(Column) + "  ", end="")
+        print("\n" + "  ", end="")
+        for Count in range(1, self._NoOfColumns + 1):
+            print("---", end="")
+        print("-")
+        for Row in range(1, self._NoOfRows + 1):
+            print(str(Row) + " ", end="")
+            for Column in range(1, self._NoOfColumns + 1):
+                Index = self.__GetIndexOfSquare(Row * 10 + Column)
+                print("|" + self._Board[Index].GetSymbol(), end="")
+                PieceInSquare = self._Board[Index].GetPieceInSquare()
+                if moveoption.CheckIfThereIsAMoveToSquare(StartSquareReference, int(str(Row)+str(Column))):
+                    print("^", end="")
+                elif PieceInSquare is None:
+                    print(" ", end="")
+                else:
+                    print(PieceInSquare.GetSymbol(), end="")
+            print("|")
+        print("  -", end="")
+        for Column in range(1, self._NoOfColumns + 1):
+            print("---", end="")
+        print()
+        print()
 
     def __UpdateBoard(self, StartSquareReference, FinishSquareReference):
         self._Board[self.__GetIndexOfSquare(FinishSquareReference)].SetPiece(self._Board[self.__GetIndexOfSquare(StartSquareReference)].RemovePiece())
