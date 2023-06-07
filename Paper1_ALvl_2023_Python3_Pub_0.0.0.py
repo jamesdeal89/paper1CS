@@ -118,6 +118,11 @@ class Dastan:
                     Player1HasMirza = True
                 elif PieceInSquare.GetTypeOfPiece() == "mirza" and PieceInSquare.GetBelongsTo().SameAs(self._Players[1]):
                     Player2HasMirza = True
+        # wikibooks prediction - game over if score 0 or below for either player
+        if self._Players[0].GetScore() <  1:
+            Player1HasMirza = False
+        elif self._Players[1].GetScore() < 1:
+            Player2HasMirza = False
         return not (Player1HasMirza and Player2HasMirza)
 
     def __GetSquareReference(self, Description):
