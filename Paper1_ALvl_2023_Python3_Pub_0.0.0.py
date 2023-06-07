@@ -125,7 +125,7 @@ class Dastan:
         return SelectedSquare
 
     def __UseMoveOptionOffer(self):
-        ReplaceChoice = int(self.__ValidateUserInput(("Choose the move option from your queue to replace (1 to 5): "+))
+        ReplaceChoice = int(self.__ValidateUserInput("Choose the move option from your queue to replace (1 to 5): "))
         self._CurrentPlayer.UpdateMoveOptionQueueWithOffer(ReplaceChoice - 1, self.__CreateMoveOption(self._MoveOptionOffer[self._MoveOptionOfferPosition], self._CurrentPlayer.GetDirection()))
         self._CurrentPlayer.ChangeScore(-(10 - (ReplaceChoice * 2)))
         self._MoveOptionOfferPosition = random.randint(0, 4)
@@ -133,7 +133,7 @@ class Dastan:
     def __GetPointsForOccupancyByPlayer(self, CurrentPlayer):
         ScoreAdjustment = 0
         for S in self._Board:
-            ScoreAdjustment += (S.GetPointsForOccupancy(CurrentPlayer))
+            ScoreAdjustment += (S.GetPointsForOccupancy(CurrentPlayer, self._Board))
         return ScoreAdjustment
 
     def __UpdatePlayerScore(self, PointsForPieceCapture):
@@ -144,12 +144,12 @@ class Dastan:
             return self._Board[self.__GetIndexOfSquare(FinishSquareReference)].GetPieceInSquare().GetPointsIfCaptured()
         return 0
 
-    def __ValidateUserInput(PromptString):
+    def __ValidateUserInput(self,PromptString):
         while True:
             inputFromUser = input(PromptString)
             try:
                 int(inputFromUser)
-            except ValueError():
+            except ValueError:
                 print("ERROR - must provide an interger, try again")
             else:
                 break
@@ -297,6 +297,11 @@ class Dastan:
                     S = Kotla(self._Players[0], "K")
                 elif Row == self._NoOfRows and Column == int(loc2[1]):
                     S = Kotla(self._Players[1], "k")
+                # wikibooks portal square prediction
+                elif Row == 4 and Column == 2:
+                    S = Portal(self._Players[0], "P")
+                elif Row == 3 and Column == 5:
+                    S = Portal(self._Players[1], "p")
                 else:
                     S = Square()
                 self._Board.append(S)
@@ -485,7 +490,7 @@ class Square:
     def GetSymbol(self):
         return self._Symbol
 
-    def GetPointsForOccupancy(self, CurrentPlayer):
+    def GetPointsForOccupancy(self, CurrentPlayer, Board):
         return 0
 
     def GetBelongsTo(self):
@@ -497,13 +502,40 @@ class Square:
         else:
             return False
 
+# wikibooks predicts that it's likely we will be asked to create another subclass of Square()
+# suggests creating a 'portal' square which teleports the play to the enemies Mirza.
+# this will win the game.
+# p1 portal = 42 
+# p2 portal = 35
+class Portal(Square):
+    def __init__(self, P, S):
+        super(Portal, self).__init__()
+        self._BelongsTo = P
+        self._Symbol = S
+
+    def GetPointsForOccupancy(self, CurrentPlayer,Board):
+        if self._PieceInSquare is None:
+            return 0
+        elif self._BelongsTo.SameAs(CurrentPlayer):
+            # if we have a piece in the portal which is owned by the same player as this portal
+            # remove the piece which moved into portal
+            self._PieceInSquare = None
+            # move the piece to location of enemy Mirza
+            for square in Board:
+                if square.GetPieceInSquare() is not None:
+                    # check if it is a mirza of the enemy
+                    if square.GetPieceInSquare().GetSymbol() in ["1","2"] and CurrentPlayer.SameAs(square.GetPieceInSquare().GetBelongsTo()) is False:
+                        # if the current square is the mirza of the enemy, replace it with the piece that entered the portal
+                        square.SetPiece(self._PieceInSquare)
+                        return 100
+
 class Kotla(Square):
     def __init__(self, P, S):
         super(Kotla, self).__init__()
         self._BelongsTo = P
         self._Symbol = S
 
-    def GetPointsForOccupancy(self, CurrentPlayer):
+    def GetPointsForOccupancy(self, CurrentPlayer, board):
         if self._PieceInSquare is None:
             return 0
         elif self._BelongsTo.SameAs(CurrentPlayer):
