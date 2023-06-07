@@ -18,7 +18,7 @@ class Dastan:
         self.__CreateMoveOptionOffer()
         while True:
             location1 = input("Player 1 enter mirza/kotla location:")
-            if location1[0] == "0" and int(location1[1]) > 0 and int(location1[1]) < self._NoOfColumns:
+            if location1[0] == "1" and int(location1[1]) > 0 and int(location1[1]) < self._NoOfColumns:
                 break
         while True:
             location2 = input("Player 2 enter mirza/kotla location:")
@@ -158,6 +158,9 @@ class Dastan:
                 if Choice == 9:
                     self.__UseMoveOptionOffer()
                     self.__DisplayState()
+                    # wikibooks prediction - change turn after moveoption offer is taken
+                    # this can be done with a break 
+                    break
                 elif Choice == 10:
                     self._CurrentPlayer.SetSpaceJumpUsed()
                     while True:
@@ -177,7 +180,7 @@ class Dastan:
                     self.__UpdatePlayerScore(PointsForPieceCapture)
                     print("New score: " + str(self._CurrentPlayer.GetScore()) + "\n")
             
-            if Choice != 10:
+            if Choice != 10 and Choice != 9:
                 while not SquareIsValid:
                     StartSquareReference = self.__GetSquareReference("containing the piece to move")
                     SquareIsValid = self.__CheckSquareIsValid(StartSquareReference, True)
