@@ -125,7 +125,7 @@ class Dastan:
         return SelectedSquare
 
     def __UseMoveOptionOffer(self):
-        ReplaceChoice = int(input("Choose the move option from your queue to replace (1 to 5): "))
+        ReplaceChoice = int(self.__ValidateUserInput(("Choose the move option from your queue to replace (1 to 5): "+))
         self._CurrentPlayer.UpdateMoveOptionQueueWithOffer(ReplaceChoice - 1, self.__CreateMoveOption(self._MoveOptionOffer[self._MoveOptionOfferPosition], self._CurrentPlayer.GetDirection()))
         self._CurrentPlayer.ChangeScore(-(10 - (ReplaceChoice * 2)))
         self._MoveOptionOfferPosition = random.randint(0, 4)
@@ -144,6 +144,17 @@ class Dastan:
             return self._Board[self.__GetIndexOfSquare(FinishSquareReference)].GetPieceInSquare().GetPointsIfCaptured()
         return 0
 
+    def __ValidateUserInput(PromptString):
+        while True:
+            inputFromUser = input(PromptString)
+            try:
+                int(inputFromUser)
+            except ValueError():
+                print("ERROR - must provide an interger, try again")
+            else:
+                break
+        return inputFromUser
+
     def PlayGame(self):
         GameOver = False
         while not GameOver:
@@ -151,10 +162,9 @@ class Dastan:
             SquareIsValid = False
             Choice = 0
             while Choice < 1 or Choice > 3 and Choice != 10:
-                print("Choose move option to use from queue (1 to 3) or 9 to take the offer: ")
                 if self._CurrentPlayer.GetSpaceJumpUsed() is not True:
-                    print("or 10 to use the space jump")
-                Choice = int(input())
+                    print("10 to use the space jump or")
+                Choice = int(self.__ValidateUserInput("Choose move option to use from queue (1 to 3) or 9 to take the offer: "))
                 if Choice == 9:
                     self.__UseMoveOptionOffer()
                     self.__DisplayState()
