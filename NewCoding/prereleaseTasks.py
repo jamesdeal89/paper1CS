@@ -65,6 +65,15 @@ class Dastan:
         print("Turn: " + self._CurrentPlayer.GetName())
         print()
 
+    def __CalculateDamage(self, StartSquareReference, FinishSquareReference, Choice):
+        RowDiff = (FinishSquareReference // 10)-(StartSquareReference // 10) 
+        ColDiff = (FinishSquareReference % 10)-(StartSquareReference % 10)
+        if RowDiff < 0:
+            RowDiff = RowDiff * -1
+        if ColDiff < 0:
+            ColDiff = ColDiff * -1
+        return ColDiff + RowDiff + Choice
+
     def __GetIndexOfSquare(self, SquareReference):
         Row = SquareReference // 10
         Col = SquareReference % 10
@@ -169,7 +178,7 @@ class Dastan:
                 if UpperLimit == 3:
                     self._CurrentPlayer.ChangeScore(-(Choice + (2 * (Choice - 1))))
                 self._CurrentPlayer.UpdateQueueAfterMove(Choice)
-                self.__UpdateBoard(StartSquareReference, FinishSquareReference)
+                self.__UpdateBoard(StartSquareReference, FinishSquareReference,Choice)
                 self.__UpdatePlayerScore(PointsForPieceCapture)
                 print("New score: " + str(self._CurrentPlayer.GetScore()) + "\n")
             if self._CurrentPlayer.SameAs(self._Players[0]):
@@ -180,8 +189,21 @@ class Dastan:
         self.__DisplayState()
         self.__DisplayFinalResult()
 
-    def __UpdateBoard(self, StartSquareReference, FinishSquareReference):
-        self._Board[self.__GetIndexOfSquare(FinishSquareReference)].SetPiece(self._Board[self.__GetIndexOfSquare(StartSquareReference)].RemovePiece())
+    def __UpdateBoard(self, StartSquareReference, FinishSquareReference,Choice):
+        failsafe = False
+        if self._Board[self.__GetIndexOfSquare(FinishSquareReference)].GetPieceInSquare() is not None:
+                        failsafe=True
+                        if self._Board[self.__GetIndexOfSquare(FinishSquareReference)].GetPieceInSquare().GetBelongsTo().SameAs(self._CurrentPlayer) == False:
+                            Damage = self.__CalculateDamage(StartSquareReference,FinishSquareReference,Choice)
+                            if self._Board[self.__GetIndexOfSquare(FinishSquareReference)].GetPieceInSquare().GetHealth() - Damage <= 0:
+                                self._Board[self.__GetIndexOfSquare(FinishSquareReference)].SetPiece(self._Board[self.__GetIndexOfSquare(StartSquareReference)].RemovePiece())
+                            else:
+                                self._Board[self.__GetIndexOfSquare(FinishSquareReference)].GetPieceInSquare().Damage(Damage)
+                                self._Board[self.__GetIndexOfSquare(FinishSquareReference)].SetDamagingPiece(self._Board[self.__GetIndexOfSquare(StartSquareReference)].GetPieceInSquare())
+                                self._Board[self.__GetIndexOfSquare(StartSquareReference)].RemovePiece()
+        if not failsafe:
+            self._Board[self.__GetIndexOfSquare(FinishSquareReference)].SetPiece(self._Board[self.__GetIndexOfSquare(StartSquareReference)].RemovePiece())
+
 
     def __DisplayFinalResult(self):
         if self._Players[0].GetScore() == self._Players[1].GetScore():
@@ -365,6 +387,14 @@ class Piece:
         self._BelongsTo = B
         self._PointsIfCaptured = P
         self._Symbol = S
+        self._Health = 10
+
+    def Damage(self, amount):
+        self._Health -= amount
+        print(self._Symbol + " took " + str(self._Health) + " damage.")
+
+    def GetHealth(self):
+        return self._Health
 
     def GetSymbol(self):
         return self._Symbol
@@ -383,9 +413,14 @@ class Square:
         self._PieceInSquare = None
         self._BelongsTo = None
         self._Symbol = " "
+        self._DamagingPiece = None
 
     def SetPiece(self, P):
         self._PieceInSquare = P
+
+    def SetDamagingPiece(self,P):
+        self._DamagingPiece = P
+        self._Symbol = self._DamagingPiece.GetSymbol()
 
     def RemovePiece(self):
         PieceToReturn = self._PieceInSquare
