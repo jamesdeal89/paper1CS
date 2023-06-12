@@ -21,6 +21,18 @@ class Dastan:
         self.__CreatePieces(NoOfPieces)
         self._CurrentPlayer = self._Players[0]
 
+    # task 6 1
+    def __GetValidInt(self,prompt):
+        while True:
+            usrInput = input(prompt)
+            try:
+                int(usrInput)
+            except ValueError:
+                print("ERROR - please enter a valid integer")
+            else:
+                break
+        return int(usrInput)
+
     def __DisplayBoard(self):
         print("\n" + "   ", end="")
         for Column in range(1, self._NoOfColumns + 1):
@@ -104,11 +116,23 @@ class Dastan:
         return not (Player1HasMirza and Player2HasMirza)
 
     def __GetSquareReference(self, Description):
-        SelectedSquare = int(input("Enter the square " + Description + " (row number followed by column number): "))
+        # task 6 2
+        while True:
+            SelectedSquare = self.__GetValidInt("Enter the square " + Description + " (row number followed by column number): ")
+            if SelectedSquare // 10 > self._NoOfRows or SelectedSquare % 10 > self._NoOfColumns or SelectedSquare // 10 < 1 or SelectedSquare % 10 < 1:
+                print("Invalid square - out of bounds")
+            else:
+                break
         return SelectedSquare
 
     def __UseMoveOptionOffer(self):
-        ReplaceChoice = int(input("Choose the move option from your queue to replace (1 to 5): "))
+        # task 6 3
+        while True:
+            ReplaceChoice = self.__GetValidInt("Choose the move option from your queue to replace (1 to 5): ")
+            if ReplaceChoice < 1 or ReplaceChoice > 5:
+                print("Invalid range")
+            else:
+                break
         self._CurrentPlayer.UpdateMoveOptionQueueWithOffer(ReplaceChoice - 1, self.__CreateMoveOption(self._MoveOptionOffer[self._MoveOptionOfferPosition], self._CurrentPlayer.GetDirection()))
         self._CurrentPlayer.ChangeScore(-(10 - (ReplaceChoice * 2)))
         self._MoveOptionOfferPosition = random.randint(0, 4)
@@ -134,7 +158,7 @@ class Dastan:
             SquareIsValid = False
             Choice = 0
             while Choice < 1 or Choice > 3:
-                Choice = int(input("Choose move option to use from queue (1 to 3) or 8 to spy on opponents queue or 9 to take the offer: "))
+                Choice = self.__GetValidInt("Choose move option to use from queue (1 to 3) or 8 to spy on opponents queue or 9 to take the offer: ")
                 if Choice == 8:
                     if self._CurrentPlayer.SameAs(self._Players[0]):
                         print("Enemy's queue is ",self._Players[1].GetJustQueue())
